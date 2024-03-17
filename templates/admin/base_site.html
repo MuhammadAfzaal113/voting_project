@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Voting System Administration{% endblock %}
+
+{% block branding %}
+<style type="text/css">
+    #site-name a {
+        color: #000746; /* Change the color to #000746 */
+    }
+</style>
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Voting System Administration </a></h1>
+{% endblock %}
