@@ -124,26 +124,33 @@ def cast_vote(request):
 
     except Exception as e:
         return Response({'message': 'An error occurred while processing your request'}, status=500)
-    
 
 
 @api_view(['POST'])
 def cast_vote(request):
     phone_number = request.data.get('phone_number')
-    otp = request.data.get('otp')
+    contestant_id = request.data.get('contestant_id')
+    task_id = request.data.get('task_id')
     contestant_task_id = request.data.get('contestant_task_id')
-
     today = timezone.now().date()
-    otp_record = OTP.objects.filter(phone_number=phone_number, otp=otp, created_at__date=today).first()
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
+    time_threshold = timezone.now() - timedelta(hours=24)
+    otp_record = OTP.objects.filter(phone_number=phone_number, created_at__gte=time_threshold).order_by('-created_at').first()
     if not otp_record:
         return Response({'message': 'Invalid OTP or OTP has expired'}, status=400)
 
-    
+    verification_check = client.verify.v2.services(otp_record.otp).verification_checks.create(
+        to=phone_number, code=request.data.get('otp')
+    )
+    if verification_check.status != 'approved':
+        return Response({'message': 'Invalid OTP'}, status=400)
+
     user = CustomUser.objects.filter(phone_number=phone_number).first()
     if not user:
         return Response({'message': 'User not found'}, status=404)
 
-    contestant_task = ContestantTask.objects.filter(id=contestant_task_id).first()
+    contestant_task = ContestantTask.objects.filter(contestant_id=contestant_id, task_id=task_id).first()
     if not contestant_task:
         return Response({'message': 'Contestant task not found'}, status=404)
 
@@ -161,7 +168,6 @@ def cast_vote(request):
         vote = Vote.objects.create(user=user, contestant_task=contestant_task)
     except ValidationError as e:
         return Response({'message': str(e)}, status=400)
-
     return Response({'message': 'Vote cast successfully'}, status=200)
 
 class ContestantListCreateAPIView(generics.ListCreateAPIView):
@@ -268,6 +274,22 @@ class ContestantTotalVotesAPIView(generics.ListAPIView):
         return Response(list(data.values()))
 
 
+@api_view(['GET'])
+def all_contestant_detail(request):
+    queryset = Contestant.objects.all().values()
+    # serializer = ContestantSerializerr(queryset, many=True)
+    for contest in queryset:
+        contest['photo'] = 'media/' + contest['photo']
+        contest['tasks'] = ContestantTask.objects.filter(contestant_id=contest['id']).values('task', 'fan_votes', 'winning_votes', 'losing_votes').order_by('-id')
+        for i in contest['tasks']:
+            i['task'] = Task.objects.filter(id=i['task']).all().values('id', 'name', 'video_link')[0]
+            i['total_votes'] = i['fan_votes'] + i['winning_votes'] - i['losing_votes']
+
+    sorted_contestants = sorted(queryset, key=lambda x: x['eliminated'])
+    return Response(sorted_contestants)
+
+
+
 class ContestantDetailAPIView(generics.ListAPIView):
     serializer_class = ContestantSerializerr
     def get_queryset(self):
@@ -290,18 +312,22 @@ def twilio_send_otp(request):
                 return Response({'message': 'OTP for this number has already been generated today. You can generate OTP next day'}, status=status.HTTP_200_OK)
 
         # Generate OTP
-        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        # otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
         # Send OTP via Twilio
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
-            body=f"Your OTP is: {otp}",
-            from_=settings.TWILIO_PHONE_NUMBER,
-            to=phone_number
-        )
+        service = client.verify.v2.services.create(friendly_name='Isarb Voting')
+        # message = client.messages.create(
+        #     body=f"Your OTP is: {otp}",
+        #     from_=settings.TWILIO_PHONE_NUMBER,
+        #     to=phone_number
+        # )
+        verification = client.verify.v2.services(service.sid).verifications.create(
+            to=phone_number, channel='sms')
+
 
         # Save OTP instance to the database
-        otp_instance = OTP.objects.create(phone_number=phone_number, otp=otp)
+        otp_instance = OTP.objects.create(phone_number=phone_number, otp=service.sid)
 
         return Response({'message': 'OTP sent successfully'}, status=status.HTTP_200_OK)
 

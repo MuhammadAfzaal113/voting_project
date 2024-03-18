@@ -19,5 +19,7 @@ urlpatterns = [
     path('task-votes/', views.TaskVotesAPIView.as_view(), name='task-votes'),
     path('contestant-task/votes/', views.ContestantVotesPerTaskAPIView.as_view(), name='contestant-task-votes-per-task'),
     path('contestant/total-votes/', views.ContestantTotalVotesAPIView.as_view(), name='contestant-total-votes'),
-    path('all-contestant-detail/', views.ContestantDetailAPIView.as_view(), name='contestant-total-votes'),
+    # path('all-contestant-detail/', views.ContestantDetailAPIView.as_view(), name='contestant-total-votes'),
+    path('all-contestant-detail/', views.all_contestant_detail, name='contestant-total-votes'),
+
 ]
