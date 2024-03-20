@@ -9,7 +9,7 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'created_at']
+    list_display = ['name', 'description', 'created_at', 'thumbnail']
   
 
 @admin.register(Contestant)

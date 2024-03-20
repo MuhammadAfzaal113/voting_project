@@ -16,6 +16,7 @@ class Task(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     video_link = models.URLField() 
+    thumbnail = models.ImageField(upload_to='task_thumbnails', default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

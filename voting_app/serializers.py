@@ -9,7 +9,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['id', 'name', 'description', 'video_link', 'created_at']
+        fields = ['id', 'name', 'description', 'video_link', 'created_at', 'thumbnail']
 
 class ContestantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,9 +57,17 @@ class AllContestantTaskSerializer(serializers.ModelSerializer):
     
 
 class TaskSerializerr(serializers.ModelSerializer):
+    thumbnail_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Task
-        fields = ['id', 'name', 'video_link']
+        fields = ['id', 'name', 'video_link', 'thumbnail']
+
+    def get_photo_url(self, obj):
+        if obj.photo:
+            return obj.photo.url
+        return None
+
 
 class ContestantTaskSerializerr(serializers.ModelSerializer):
     task = TaskSerializerr()

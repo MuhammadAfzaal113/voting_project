@@ -282,7 +282,8 @@ def all_contestant_detail(request):
         contest['photo'] = 'media/' + contest['photo']
         contest['tasks'] = ContestantTask.objects.filter(contestant_id=contest['id']).values('task', 'fan_votes', 'winning_votes', 'losing_votes').order_by('-id')
         for i in contest['tasks']:
-            i['task'] = Task.objects.filter(id=i['task']).all().values('id', 'name', 'video_link')[0]
+            i['task'] = Task.objects.filter(id=i['task']).all().values('id', 'name', 'video_link', 'thumbnail')[0]
+            i['task']['thumbnail'] = 'media/' + i['task']['thumbnail']
             i['total_votes'] = i['fan_votes'] + i['winning_votes'] - i['losing_votes']
 
     sorted_contestants = sorted(queryset, key=lambda x: x['eliminated'])
