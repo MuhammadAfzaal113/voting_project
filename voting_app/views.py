@@ -1,4 +1,5 @@
 # views.py
+from operator import itemgetter
 
 from rest_framework import generics
 from rest_framework.decorators import api_view
@@ -131,8 +132,13 @@ def cast_vote(request):
     phone_number = request.data.get('phone_number')
     contestant_id = request.data.get('contestant_id')
     task_id = request.data.get('task_id')
-    contestant_task_id = request.data.get('contestant_task_id')
-    today = timezone.now().date()
+    # contestant_task_id = request.data.get('contestant_task_id')
+    # today = timezone.now().date()
+
+    contestant_task = ContestantTask.objects.filter(contestant_id=contestant_id, task_id=task_id).first()
+    if not contestant_task:
+        return Response({'message': 'Contestant task not found'}, status=200)
+
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
     time_threshold = timezone.now() - timedelta(hours=24)
@@ -150,15 +156,12 @@ def cast_vote(request):
     if not user:
         return Response({'message': 'User not found'}, status=404)
 
-    contestant_task = ContestantTask.objects.filter(contestant_id=contestant_id, task_id=task_id).first()
-    if not contestant_task:
-        return Response({'message': 'Contestant task not found'}, status=404)
 
-    existing_vote = Vote.objects.filter(user=user, contestant_task=contestant_task, voted_at__date=today).first()
-    if existing_vote:
-
-        existing_vote.save() 
-        return Response({'message': 'Your vote has been updated successfully'}, status=200)
+    # existing_vote = Vote.objects.filter(user=user, contestant_task=contestant_task, voted_at__date=today).first()
+    # if existing_vote:
+    #
+    #     existing_vote.save()
+    #     return Response({'message': 'Your vote has been updated successfully'}, status=200)
 
  
     contestant_task.fan_votes += 1
@@ -285,8 +288,9 @@ def all_contestant_detail(request):
             i['task'] = Task.objects.filter(id=i['task']).all().values('id', 'name', 'video_link', 'thumbnail')[0]
             i['task']['thumbnail'] = 'media/' + i['task']['thumbnail']
             i['total_votes'] = i['fan_votes'] + i['winning_votes'] - i['losing_votes']
-
-    sorted_contestants = sorted(queryset, key=lambda x: x['eliminated'])
+    sorted_contestants = sorted(queryset, key=lambda x: max(i['total_votes'] for i in x['tasks']) if x['tasks'] else 0, reverse=True)
+    sorted_contestants.sort(key=itemgetter('eliminated'))
+    # sorted_contestants = sorted(queryset, key=lambda x: x['eliminated'])
     return Response(sorted_contestants)
 
 
@@ -306,11 +310,15 @@ def twilio_send_otp(request):
         user, created = CustomUser.objects.get_or_create(phone_number=phone_number)
 
         # Check if an OTP has already been generated today
-        existing_otp = OTP.objects.filter(phone_number=phone_number).first()
-        if existing_otp:
-            today = timezone.now().date()
-            if existing_otp.created_at.date() == today:
-                return Response({'message': 'OTP for this number has already been generated today. You can generate OTP next day'}, status=status.HTTP_200_OK)
+        current_datetime = timezone.now()
+        twenty_four_hours_ago = current_datetime - timedelta(hours=24)
+        existing_otp = OTP.objects.filter(phone_number=phone_number, created_at__gte=twenty_four_hours_ago)
+        existing_vote = Vote.objects.filter(user=user, voted_at__gte=twenty_four_hours_ago)
+        # existing_otp = OTP.objects.filter(phone_number=phone_number).first()
+        if existing_vote:
+            # today = timezone.now().date()
+            # if existing_otp.created_at.date() == today:
+            return Response({'message': 'OTP for this number has already been generated today. You can generate OTP next day'}, status=status.HTTP_200_OK)
 
         # Generate OTP
         # otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
