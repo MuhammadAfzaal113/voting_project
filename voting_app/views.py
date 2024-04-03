@@ -146,7 +146,7 @@ def cast_vote_using_mail(request):
     contestant_task.save()
 
     try:
-        vote = Vote.objects.create(user=user[0], contestant_task=contestant_task)
+        vote = Vote.objects.create(user=user, contestant_task=contestant_task)
     except ValidationError as e:
         return Response({'message': str(e)}, status=400)
     return Response({'message': 'Vote cast successfully'}, status=200)
