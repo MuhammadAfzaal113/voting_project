@@ -5,7 +5,7 @@ from .models import CustomUser, Task, Contestant, ContestantTask, Vote, OTP
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['email', 'last_vote_reset']
+    list_display = ['phone_number', 'last_vote_reset']
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
