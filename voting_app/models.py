@@ -7,7 +7,7 @@ User = get_user_model()
 
 class CustomUser(models.Model):
     # phone_number = models.CharField(max_length=15, unique=True)
-    email = models.CharField(max_length=15, default=None)
+    email = models.CharField(max_length=15, default=None, unique=True)
     last_vote_reset = models.DateTimeField(null=True, blank=True)
 
     # def __str__(self):
