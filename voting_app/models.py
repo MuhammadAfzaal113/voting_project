@@ -60,7 +60,7 @@ class Vote(models.Model):
 
 class OTP(models.Model):
     phone_number = models.CharField(max_length=15, default=None)
-    email = models.CharField(max_length=255, unique=True)
+    email = models.CharField(max_length=255, unique=True, default=None)
     otp = models.CharField(max_length=255, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
 
