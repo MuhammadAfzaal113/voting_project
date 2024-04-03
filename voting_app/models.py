@@ -6,11 +6,12 @@ from django.utils import timezone
 User = get_user_model()
 
 class CustomUser(models.Model):
-    phone_number = models.CharField(max_length=15, unique=True)
+    # phone_number = models.CharField(max_length=15, unique=True)
+    email = models.CharField(max_length=15, default=None)
     last_vote_reset = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return self.phone_number
+    # def __str__(self):
+    #     return self.phone_number
 
 class Task(models.Model):
     name = models.CharField(max_length=100)
