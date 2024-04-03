@@ -129,9 +129,11 @@ def cast_vote(request):
 
 @api_view(['POST'])
 def cast_vote_using_mail(request):
-    email = request.data.get('email')
+    email = request.data.get('email', None)
     contestant_id = request.data.get('contestant_id')
     task_id = request.data.get('task_id')
+    if email is None:
+        return Response({'message': 'Email is required'}, status=400)
 
     contestant_task = ContestantTask.objects.filter(contestant_id=contestant_id, task_id=task_id).first()
     if not contestant_task:
