@@ -128,6 +128,31 @@ def cast_vote(request):
 
 
 @api_view(['POST'])
+def cast_vote_using_mail(request):
+    email = request.data.get('email')
+    contestant_id = request.data.get('contestant_id')
+    task_id = request.data.get('task_id')
+
+    contestant_task = ContestantTask.objects.filter(contestant_id=contestant_id, task_id=task_id).first()
+    if not contestant_task:
+        return Response({'message': 'Contestant task not found'}, status=200)
+
+    try:
+        user = CustomUser.objects.get_or_create(email=email)
+    except IntegrityError:
+        return Response({'message': 'Email already exists'}, status=200)
+
+    contestant_task.fan_votes += 1
+    contestant_task.save()
+
+    try:
+        vote = Vote.objects.create(user=user, contestant_task=contestant_task)
+    except ValidationError as e:
+        return Response({'message': str(e)}, status=400)
+    return Response({'message': 'Vote cast successfully'}, status=200)
+
+
+@api_view(['POST'])
 def cast_vote(request):
     phone_number = request.data.get('phone_number')
     contestant_id = request.data.get('contestant_id')

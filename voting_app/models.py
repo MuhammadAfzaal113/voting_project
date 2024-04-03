@@ -59,8 +59,9 @@ class Vote(models.Model):
         return f"{self.user} voted for {self.contestant_task} at {self.voted_at}"
 
 class OTP(models.Model):
-    phone_number = models.CharField(max_length=15)
-    otp = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=15, default=None)
+    email = models.CharField(max_length=255, unique=True)
+    otp = models.CharField(max_length=255, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
