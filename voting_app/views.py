@@ -138,7 +138,7 @@ def cast_vote_using_mail(request):
         return Response({'message': 'Contestant task not found'}, status=200)
 
     try:
-        user = CustomUser.objects.get_or_create(email=email)
+        user = CustomUser.objects.create(email=email)
     except IntegrityError:
         return Response({'message': 'Email already exists'}, status=200)
 
