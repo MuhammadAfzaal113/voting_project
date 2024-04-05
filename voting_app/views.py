@@ -317,7 +317,7 @@ def all_contestant_detail(request):
             i['total_task_votes'] = i['fan_votes'] + i['winning_votes'] - i['losing_votes']
         contest['total_votes'] = sum(i['total_task_votes'] for i in contest['tasks'])
         contest['total_days'] = len(contest['tasks'])
-    sorted_contestants = sorted(queryset, key=lambda x: max(i['total_votes'] for i in x['tasks']) if x['tasks'] else 0, reverse=True)
+    sorted_contestants = sorted(queryset, key=lambda x: x['total_votes'], reverse=True)
     sorted_contestants.sort(key=itemgetter('eliminated'))
     # sorted_contestants = sorted(queryset, key=lambda x: x['eliminated'])
     return Response(sorted_contestants)
