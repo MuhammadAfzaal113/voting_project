@@ -14,7 +14,7 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(Contestant)
 class ContestantAdmin(admin.ModelAdmin):
-    list_display = ['name', 'eliminated']
+    list_display = ['name', 'eliminated', 'show_hide']
   
 
 @admin.register(ContestantTask)
