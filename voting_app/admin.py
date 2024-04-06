@@ -14,8 +14,13 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(Contestant)
 class ContestantAdmin(admin.ModelAdmin):
-    list_display = ['name', 'eliminated', 'show_hide']
-  
+    list_display = ['name', 'eliminated', 'voting_show_hide']
+
+    def voting_show_hide(self, obj):
+        return obj.show_hide
+
+    voting_show_hide.short_description = "Voting Show/Hide"
+
 
 @admin.register(ContestantTask)
 class ContestantTaskAdmin(admin.ModelAdmin):
