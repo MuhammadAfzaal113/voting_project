@@ -21,6 +21,17 @@ class ContestantAdmin(admin.ModelAdmin):
 
     voting_show_hide.short_description = "Voting Show/Hide"
 
+    fieldsets = (
+            (None, {
+                'fields': ('name', 'photo', 'eliminated', 'show_hide'),
+            }),
+            ('Voting Settings', {
+                'fields': ('show_hide',),
+                'classes': ('collapse',),
+                'description': "Voting Show/Hide",
+            }),
+        )
+
 
 @admin.register(ContestantTask)
 class ContestantTaskAdmin(admin.ModelAdmin):
