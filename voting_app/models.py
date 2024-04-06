@@ -10,8 +10,8 @@ class CustomUser(models.Model):
     email = models.CharField(max_length=15, default=None, unique=True)
     last_vote_reset = models.DateTimeField(null=True, blank=True)
 
-    # def __str__(self):
-    #     return self.phone_number
+    def __str__(self):
+        return self.email
 
 class Task(models.Model):
     name = models.CharField(max_length=100)
